@@ -1,50 +1,99 @@
 from krita import *
 
-application = Krita.instance()
-current_document = application.activeDocument()
 
-def get_current_layer():
-    return current_document.activeNode()
+class Layer:
+    def __init__(self, layer_type, layer_name):
+        self.type = layer_type
+        self.name = layer_name
+        self.current_document = Krita.instance().activeDocument()
+        match layer_type:
+            case 'paintlayer':
+                self.node = self.current_document.createNode(layer_name, layer_type)
+            case 'filelayer':
+                self.node = self.current_document.createFileLayer(layer_name, '', '', '')
 
-def set_file_layer_image( file_layer_name, img_path, index = 0 ):
-    # index  :  index of duplicate layer 
-    file_layer = get_current_layer().parentNode().findChildNodes(file_layer_name)[index]
-    file_layer.setProperties(img_path ,'' ,'')    
+    def get_current_layer(self):
+        return self.current_document.activeNode()
 
-def add_file_layer(layer_name, img_path):
-    file_layer = current_document.createNode(layer_name, 'filelayer')
-    current_layer = get_current_layer()
-    current_layer.parentNode().addChildNode(file_layer, current_layer)
+    def add_layer_to_document(self):
+        current_layer = self.get_current_layer()
+        current_layer.parentNode().addChildNode(self.node, current_layer)
 
-    if img_path:
-        set_file_layer_image(layer_name, img_path)
+    def set_file_layer_image(self, img_path):
+        if self.type == 'filelayer':
+            self.node.setProperties(img_path, '', '')
 
-    return file_layer
+    def refresh_projection(self):
+        self.current_document.refreshProjection()
 
-def add_paint_layer(layer_name):
-    new_layer = current_document.createNode(layer_name, 'paintlayer')
-    current_layer = get_current_layer()
-    current_layer.parentNode().addChildNode(new_layer, current_layer)
+    def hide(self):
+        self.node.setVisible(False)
+        self.refresh_projection()
 
-    return new_layer
+    def show(self):
+        self.node.setVisible(True)
+        self.refresh_projection()
 
-def add_layer_set(paint_layer_name, file_layer_name, file_layer_img_path):
-    # Add set of paint layer and file layer
-    paint_layer = add_paint_layer(paint_layer_name)
-    add_file_layer(file_layer_name, file_layer_img_path)
+    def set_active(self):
+        # does not work as expected or at all not necessary for initial trial. all hail melody!
+        # will just be using order of layer addition for handling of layers now.
+        self.current_document.setActiveNode(self.node)
+
+
+class Set:
     
-    current_document.setActiveNode(paint_layer)
+    def __init__(self, name, image_path):
+        self.file_layer = Layer('filelayer', 'Ref Layer ' + name)
+        self.file_layer.add_layer_to_document()
+        self.file_layer.set_file_layer_image(image_path)
+        self.paint_layer = Layer('paintlayer', 'Paint Layer ' + name)
+        self.paint_layer.add_layer_to_document()
+        self.name = name
+
+    def add_set_to_document(self):
+        self.file_layer.add_layer_to_document()
+        self.paint_layer.add_layer_to_document() 
+
+    def hide(self):
+        self.file_layer.hide()
+        self.paint_layer.hide()
+
+    def show(self):
+        self.file_layer.show()
+        self.paint_layer.show()
 
 
-sample_img = '/home/ningen/Pictures/dona-wallpaper.jpg'
+class Session:
+
+    DEFAULT_SOURCE = '/home/ningen/Pictures/'
+
+    def __init__(self, timer, count):
+        self.timer = timer
+        self.count = count
+        self.sets = []
+        self.index = 0
+
+    #def start():
+            
+
+sample_img = '/home/ningen/images/sample.jpg'
 
 """
-add_paint_layer('Paint Layer 3')
-add_file_layer('Ref_3')
-set_file_layer_image(sample_img, 'Ref_3')
-application.action('activateNextLayer').trigger()
+x = Layer('filelayer', 'Ref Layer 2')
+print(x.type, x.name)
+x.add_layer_to_document()
+x.set_file_layer_image(sample_img)
 """
 
-add_layer_set('Paint Layer 2', 'Reference 2', sample_img)
+"""
+f = Layer('filelayer', 'Ref Layer 2')
+f.add_layer_to_document()
+f.set_file_layer_image(sample_img)
 
-#test
+p = Layer('paintlayer', 'Paint Layer 2')
+p.add_layer_to_document()
+"""
+"""
+x = Set('2', sample_img)
+"""
+
