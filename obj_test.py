@@ -46,3 +46,5 @@ application.action('activateNextLayer').trigger()
 """
 
 add_layer_set('Paint Layer 2', 'Reference 2', sample_img)
+
+#test
