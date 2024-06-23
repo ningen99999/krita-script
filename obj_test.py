@@ -35,8 +35,11 @@ class Layer:
         self.refresh_projection()
 
     def set_active(self):
-        # does not work as expected or at all not necessary for initial trial. all hail melody!
-        # will just be using order of layer addition for handling of layers now.
+        '''
+        set node as actively selected layer
+        does not work as expected or at all not necessary for initial trial 
+        currently relying on order of layer creation/adding for selection of layers
+        '''
         self.current_document.setActiveNode(self.node)
 
 
