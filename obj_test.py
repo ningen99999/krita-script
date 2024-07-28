@@ -1,5 +1,6 @@
 from krita import *
-
+from PyQt5.QtWidgets import (QWidget, QAction)
+import os, random
 
 class Layer:
     def __init__(self, layer_type, layer_name):
@@ -46,10 +47,10 @@ class Layer:
 class Set:
     
     def __init__(self, name, image_path):
-        self.file_layer = Layer('filelayer', 'Ref Layer ' + name)
+        self.file_layer = Layer('filelayer', 'Ref Layer ' + str(name))
         self.file_layer.add_layer_to_document()
         self.file_layer.set_file_layer_image(image_path)
-        self.paint_layer = Layer('paintlayer', 'Paint Layer ' + name)
+        self.paint_layer = Layer('paintlayer', 'Paint Layer ' + str(name))
         self.paint_layer.add_layer_to_document()
         self.name = name
 
@@ -68,16 +69,47 @@ class Set:
 
 class Session:
 
-    DEFAULT_SOURCE = '/home/ningen/Pictures/'
+    def __init__(self):
+        self.timer = 0
+        self.count = 0
+        self.sets = []
+        self.image_list = []
+        self.index = -1
+        self.source = '/home/ningen/images/'
+        
+    def set_source(self, source):
+        self.source = source
 
-    def __init__(self, timer, count):
+    def start(self, count = 10, timer = 60, source = '/home/ningen/images/'):
         self.timer = timer
         self.count = count
-        self.sets = []
-        self.index = 0
-
-    #def start():
+        self.source = source
+        self.prepare_list()
+        
+    def next(self):
+        if self.index > -1:
+            self.sets[self.index].hide()
             
+        self.index = self.index + 1
+        self.sets.append( Set(self.index+2, self.source+self.image_list[self.index]) )
+        
+    def prepare_list(self):
+        self.image_list = os.listdir(self.source)
+        
+        # Not good but works for test. need to cut off at count to avoid pointless looping
+        for x in range(len(self.image_list)):
+            rand = random.randrange(len(self.image_list))
+            self.image_list[x], self.image_list[rand] = self.image_list[rand], self.image_list[x]
+
+        if self.count > len(self.image_list):
+            self.count = len(self.image_list)
+
+        self.image_list = self.image_list[:self.count]
+
+
+def test_function():
+    x = Set('2', sample_img)
+    return 'test_function return'
 
 sample_img = '/home/ningen/images/sample.jpg'
 
@@ -99,4 +131,20 @@ p.add_layer_to_document()
 """
 x = Set('2', sample_img)
 """
+
+
+session = Session()
+session.start(source='/home/ningen/images/dona/')
+print(session.image_list)
+
+#create an action that does stuff
+extractAction = QAction("next")
+extractAction.setShortcut("Ctrl+`")
+extractAction.setStatusTip('Next image')
+extractAction.triggered.connect(session.next)
+
+# Create menu off main menu and add a new action to it
+main_menu = Krita.instance().activeWindow().qwindow().menuBar()
+custom_menu = main_menu.addMenu("gesture")
+custom_menu.addAction(extractAction) # how to get items/actions in a menu
 
