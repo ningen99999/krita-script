@@ -9,6 +9,9 @@ Adds random images from set as groups with paint layer to document
 reference image transformed to fill half of screen
 '''
 
+# Path to directory of reference images
+IMAGE_DIRECTORY_PATH = 'path\\to\\image\\pool'
+
 class ImageSet:
 
     def __init__(self, image_path, name):
@@ -161,11 +164,9 @@ def randomImage(directory_path):
     return random.choice(image_list)
 
 def newImageSet():
-    # Directory for pool of images to be drawn from
-    image_directory_path = ''
-    image_name = randomImage(image_directory_path)
-    name = image_name
-    image_path = image_directory_path + '\\' + image_name
+    # get ramdon image file from directory
+    image_name = randomImage(IMAGE_DIRECTORY_PATH)
+    image_path = IMAGE_DIRECTORY_PATH + '\\' + image_name
 
     # root_node = Krita.instance().activeDocument().rootNode()
     # child_nodes = root_node.childNodes()
@@ -175,7 +176,7 @@ def newImageSet():
     #   child_nodes[len(child_nodes)-1].setVisible(False)
     #   Krita.instance().activeDocument().refreshProjection()
 
-    image_set = ImageSet(image_path, name)
+    image_set = ImageSet(image_path, image_name)
 
 
 #create an action for group creation
